@@ -35,7 +35,7 @@ class DateCheckServiceTest {
 	@Test
 	public void testCheckoutDate_chargeDays_valid() {
 		DateCheckout checkoutDateFromDate =
-				dateCheckService.getCheckoutDateFromDate("2021-09-01 01:00:00",
+				dateCheckService.getCheckoutDateFromDate("2021-08-01 01:00:00",
 						15,
 						true,
 						true,
@@ -53,8 +53,8 @@ class DateCheckServiceTest {
 						true,
 						false);
 		assertNotNull(checkoutDateFromDate);
-		assertEquals(15,checkoutDateFromDate.getChargeDays());
-		assertEquals(0, checkoutDateFromDate.getFreeDays());
+		assertEquals(14,checkoutDateFromDate.getChargeDays());
+		assertEquals(1, checkoutDateFromDate.getFreeDays());
 	}
 	@Test
 	public void testCheckoutDate_chargeDaysHolidayChargeTrue_LaborDay_valid() {
@@ -78,8 +78,8 @@ class DateCheckServiceTest {
 						false,
 						false);
 		assertNotNull(checkoutDateFromDate);
-		assertEquals(11,checkoutDateFromDate.getChargeDays());
-		assertEquals(4, checkoutDateFromDate.getFreeDays());
+		assertEquals(10,checkoutDateFromDate.getChargeDays());
+		assertEquals(5, checkoutDateFromDate.getFreeDays());
 	}
 	
 	@Test
@@ -167,7 +167,20 @@ class DateCheckServiceTest {
 						true,
 						false);
 		assertNotNull(checkoutDateFromDate);
-		assertEquals(2147483645,checkoutDateFromDate.getChargeDays());
-		assertEquals(2, checkoutDateFromDate.getFreeDays());
+		assertEquals(2135724425,checkoutDateFromDate.getChargeDays());
+		assertEquals(11759222, checkoutDateFromDate.getFreeDays());
 	}
+	@Test
+	public void testCheckoutDate_chargeDaysHolidayChargeTrue_IndependenceDay_AND_LaborDay_MAX_VALUE_DAYS_valid() {
+		DateCheckout checkoutDateFromDate =
+				dateCheckService.getCheckoutDateFromDate("2021-07-01 01:00:00",
+						Integer.MAX_VALUE,
+						true,
+						true,
+						true);
+		assertNotNull(checkoutDateFromDate);
+		assertEquals(Integer.MAX_VALUE,checkoutDateFromDate.getChargeDays());
+		assertEquals(0, checkoutDateFromDate.getFreeDays());
+	}
+	
 }
