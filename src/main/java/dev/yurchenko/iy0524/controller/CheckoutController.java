@@ -4,7 +4,6 @@ import dev.yurchenko.iy0524.controller.request.ToolRequest;
 import dev.yurchenko.iy0524.controller.response.RentalAgreementResponse;
 import dev.yurchenko.iy0524.controller.response.ToolListResponse;
 import dev.yurchenko.iy0524.dto.ToolDto;
-import dev.yurchenko.iy0524.entites.ToolEntity;
 import dev.yurchenko.iy0524.service.ToolsService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

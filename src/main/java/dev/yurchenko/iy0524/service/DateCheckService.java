@@ -31,7 +31,7 @@ public class DateCheckService {
 				                  .atZone(ZoneId.systemDefault())
 				                  .toLocalDate();
 		LocalDate end = start.plusDays(days);
-		;
+	
 		long periodDaysTotal = ChronoUnit.DAYS.between(start, end);
 		long periodWithoutWeekends = daysInRangeWithoutWeekends(start, end);
 		long numberOfWeekends = periodDaysTotal - periodWithoutWeekends;

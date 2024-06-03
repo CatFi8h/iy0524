@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.yurchenko.iy0524.controller.request.ToolRequest;
 import dev.yurchenko.iy0524.controller.response.RentalAgreementResponse;
-import dev.yurchenko.iy0524.controller.response.ToolListResponse;
 import dev.yurchenko.iy0524.dto.ToolDto;
 import dev.yurchenko.iy0524.service.ToolsService;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
