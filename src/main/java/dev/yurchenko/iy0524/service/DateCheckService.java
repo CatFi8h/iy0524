@@ -44,12 +44,8 @@ public class DateCheckService {
 				                + (weekdayCharge ? 0 : periodWithoutWeekends)
 				                + (weekendCharge ? 0 : numberOfWeekends);
 		
-		DateCheckout dateCheckout = new DateCheckout();
-		dateCheckout.setDueDate(Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-		dateCheckout.setCheckoutDate(checkoutDate);
-		dateCheckout.setRentalDays(periodDaysTotal);
-		dateCheckout.setFreeDays(freeDays);
-		dateCheckout.setChargeDays(periodDaysTotal - freeDays);
+		DateCheckout dateCheckout = new DateCheckout(periodDaysTotal, periodDaysTotal - freeDays,
+				freeDays, checkoutDate, Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 		return dateCheckout;
 	}
 	

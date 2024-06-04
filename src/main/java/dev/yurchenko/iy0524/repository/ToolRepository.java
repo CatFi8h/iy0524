@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ToolRepository extends JpaRepository<ToolEntity, Long> {
 	@Query("select t from ToolEntity t " +
-			       "left join fetch BrandEntity b " +
-			       "left join fetch ToolTypeEntity tte " +
-			       "where t.code = ?")
+			       "left join fetch t.brand b " +
+			       "left join fetch t.toolType tte " +
+			       "where t.code = ?1")
 	ToolEntity checkoutWith(String code);
 }

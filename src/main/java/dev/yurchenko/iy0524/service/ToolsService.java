@@ -55,7 +55,7 @@ public class ToolsService {
 						toolType.getWeekendCharge(),
 						toolType.getHolidayCharge());
 		
-		BigDecimal preDiscountCharge = calculatePriceWithoutDiscount(toolType.getDailyCharge(), checkoutDateFromDate.getChargeDays());
+		BigDecimal preDiscountCharge = calculatePriceWithoutDiscount(toolType.getDailyCharge(), checkoutDateFromDate.chargeDays());
 		
 		BigDecimal discountAmount = new BigDecimal(discountPercents).setScale(2, RoundingMode.HALF_UP).divide(new BigDecimal(100).setScale(2, RoundingMode.HALF_UP), RoundingMode.HALF_UP)
 				                               .multiply(preDiscountCharge).setScale(2, RoundingMode.HALF_UP);
@@ -63,11 +63,11 @@ public class ToolsService {
 		return new RentalAgreementResponse(toolEntity.getCode(),
 				toolEntity.getBrand().getName(),
 				toolType.getName(),
-				checkoutDateFromDate.getRentalDays(),
-				checkoutDateFromDate.getCheckoutDate(),
-				checkoutDateFromDate.getDueDate(),
+				checkoutDateFromDate.rentalDays(),
+				checkoutDateFromDate.checkoutDate(),
+				checkoutDateFromDate.dueDate(),
 				toolType.getDailyCharge(),
-				checkoutDateFromDate.getChargeDays(),
+				checkoutDateFromDate.chargeDays(),
 				preDiscountCharge,
 				discountPercents,
 				discountAmount,

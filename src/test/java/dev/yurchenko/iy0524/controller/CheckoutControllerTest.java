@@ -78,7 +78,7 @@ class CheckoutControllerTest {
 				"Instrument Type",
 				10,
 				Date.from(Instant.parse("2007-12-03T10:15:30.00Z")),
-				Date.from(Instant.parse("2007-12-03T10:15:30.00Z")),
+				Date.from(Instant.parse("2007-12-14T10:15:30.00Z")),
 				BigDecimal.TEN,
 				10,
 				BigDecimal.TWO,
@@ -93,7 +93,18 @@ class CheckoutControllerTest {
 				                .contentType(MediaType.APPLICATION_JSON)
 				                .content(requestBody(request)))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.brand").value("Brand"));
+				.andExpect(jsonPath("$.code").value("CODE"))
+				.andExpect(jsonPath("$.brand").value("Brand"))
+				.andExpect(jsonPath("$.type").value("Instrument Type"))
+				.andExpect(jsonPath("$.days").value(10))
+				.andExpect(jsonPath("$.date").value("2007-12-03T10:15:30.000+00:00"))
+				.andExpect(jsonPath("$.dueDate").value("2007-12-14T10:15:30.000+00:00"))
+				.andExpect(jsonPath("$.dailyCharge").value(10))
+				.andExpect(jsonPath("$.daysCharge").value(10))
+				.andExpect(jsonPath("$.preDiscountCharge").value(2))
+				.andExpect(jsonPath("$.discountPercent").value(14))
+				.andExpect(jsonPath("$.discountAmount").value(25))
+				.andExpect(jsonPath("$.finalCharge").value(124));
 	
 	}
 	

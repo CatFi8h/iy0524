@@ -18,7 +18,6 @@ public class ToolEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-//	@Column(unique = true)
 	private String code;
 	@ManyToOne(fetch = FetchType.LAZY)
 	private ToolTypeEntity toolType;
