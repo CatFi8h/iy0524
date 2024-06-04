@@ -30,6 +30,6 @@ public class CheckoutController {
 	
 	@PostMapping("/checkout")
 	public @ResponseBody RentalAgreementResponse checkoutTool(@NonNull @RequestBody ToolRequest request) {
-		return toolsService.checkout(request);
+		return toolsService.createRentalAgreementResponse(request);
 	}
 }

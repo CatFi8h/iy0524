@@ -7,10 +7,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 class ToolRepositoryTest {
@@ -24,8 +26,9 @@ class ToolRepositoryTest {
 	
 	@Test
 	public void findById() {
-		ToolEntity toolEntity = toolRepository.checkoutWith("CHNS");
-		assertNotNull(toolEntity);
+		Optional<ToolEntity> toolEntityOpt = toolRepository.getToolWithDetailsByCode("CHNS");
+		assertTrue(toolEntityOpt.isPresent());
+		ToolEntity toolEntity = toolEntityOpt.get();
 		assertEquals("CHNS", toolEntity.getCode());
 		assertEquals(1, toolEntity.getId());
 		assertNotNull(toolEntity.getToolType());

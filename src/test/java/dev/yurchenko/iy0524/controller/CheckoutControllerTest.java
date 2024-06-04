@@ -18,6 +18,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.stream.Stream;
@@ -85,10 +87,10 @@ class CheckoutControllerTest {
 				14,
 				new BigDecimal(25),
 				new BigDecimal(124));
-		when(toolsService.checkout(any(ToolRequest.class)))
+		when(toolsService.createRentalAgreementResponse(any(ToolRequest.class)))
 				.thenReturn(rentalAgreementResponse);
-				
-		ToolRequest request = new ToolRequest("CODE", 5, 15, "2007-12-03T10:15:30.00Z");
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		ToolRequest request = new ToolRequest("CODE", 5, 15, dateFormat.parse("2007-12-03").toInstant());
 		mockMvc.perform(post("/checkout")
 				                .contentType(MediaType.APPLICATION_JSON)
 				                .content(requestBody(request)))

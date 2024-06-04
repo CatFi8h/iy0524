@@ -1,5 +1,6 @@
 package dev.yurchenko.iy0524.entites;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -18,6 +19,7 @@ public class ToolEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	@Column(nullable = false, unique = true)
 	private String code;
 	@ManyToOne(fetch = FetchType.LAZY)
 	private ToolTypeEntity toolType;

@@ -1,5 +1,6 @@
 package dev.yurchenko.iy0524.entites;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,9 +19,14 @@ public class ToolTypeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	@Column(nullable = false)
 	private String name;
+	@Column(nullable = false)
 	private BigDecimal dailyCharge;
+	@Column(nullable = false)
 	private Boolean weekdayCharge;
+	@Column(nullable = false)
 	private Boolean weekendCharge;
+	@Column(nullable = false)
 	private Boolean holidayCharge;
 }

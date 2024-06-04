@@ -6,13 +6,14 @@ import dev.yurchenko.iy0524.dto.ToolDto;
 import dev.yurchenko.iy0524.entites.ToolEntity;
 import dev.yurchenko.iy0524.entites.ToolTypeEntity;
 import dev.yurchenko.iy0524.repository.ToolRepository;
-import dev.yurchenko.iy0524.service.dto.DateCheckout;
+import dev.yurchenko.iy0524.dto.DateCheckoutDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -35,33 +36,32 @@ public class ToolsService {
 		return getAllToolsDto(getAllToolsFromRepository());
 	}
 	
-	public RentalAgreementResponse checkout(ToolRequest request) {
+	public RentalAgreementResponse createRentalAgreementResponse(ToolRequest request) {
 		Integer discountPercents = request.discount();
 		Integer rentDays = request.days();
 		
 		validateRequestDay(rentDays);
 		validateRequestDiscount(discountPercents);
 		
-		ToolEntity toolEntity = toolRepository.checkoutWith(request.code());
+		Optional<ToolEntity> toolEntity = toolRepository.getToolWithDetailsByCode(request.code());
 		
-		if (toolEntity == null) {
+		if (toolEntity.isEmpty()) {
 			throw new IllegalArgumentException(String.format("Tool with Code :%s not found", request.code()));
 		}
-		ToolTypeEntity toolType = toolEntity.getToolType();
-		DateCheckout checkoutDateFromDate =
+		ToolTypeEntity toolType = toolEntity.get().getToolType();
+		DateCheckoutDto checkoutDateFromDate =
 				dateCheckService.getCheckoutDateFromDate(request.checkoutDate(),
 						rentDays,
 						toolType.getWeekdayCharge(),
 						toolType.getWeekendCharge(),
 						toolType.getHolidayCharge());
 		
-		BigDecimal preDiscountCharge = calculatePriceWithoutDiscount(toolType.getDailyCharge(), checkoutDateFromDate.chargeDays());
+		BigDecimal preDiscountCharge = getPriceWithoutDiscount(toolType.getDailyCharge(), checkoutDateFromDate.chargeDays());
+		BigDecimal discountAmount = getDiscountAmount(discountPercents, preDiscountCharge);
+		BigDecimal finalCharge = preDiscountCharge.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP);
 		
-		BigDecimal discountAmount = new BigDecimal(discountPercents).setScale(2, RoundingMode.HALF_UP).divide(new BigDecimal(100).setScale(2, RoundingMode.HALF_UP), RoundingMode.HALF_UP)
-				                               .multiply(preDiscountCharge).setScale(2, RoundingMode.HALF_UP);
-		
-		return new RentalAgreementResponse(toolEntity.getCode(),
-				toolEntity.getBrand().getName(),
+		return new RentalAgreementResponse(toolEntity.get().getCode(),
+				toolEntity.get().getBrand().getName(),
 				toolType.getName(),
 				checkoutDateFromDate.rentalDays(),
 				checkoutDateFromDate.checkoutDate(),
@@ -71,15 +71,17 @@ public class ToolsService {
 				preDiscountCharge,
 				discountPercents,
 				discountAmount,
-				preDiscountCharge.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP));
+				finalCharge);
 	}
 	
-	private BigDecimal calculatePriceWithoutDiscount(BigDecimal price, long days) {
-		
+	private static BigDecimal getDiscountAmount(Integer discountPercents, BigDecimal preDiscountCharge) {
+		BigDecimal percentAsDecimal = new BigDecimal(discountPercents).divide(new BigDecimal(100),2,  RoundingMode.HALF_UP);
+		return percentAsDecimal.multiply(preDiscountCharge).setScale(2, RoundingMode.HALF_UP);
+	}
+	
+	private BigDecimal getPriceWithoutDiscount(BigDecimal price, long days) {
 		return price.multiply(BigDecimal.valueOf(days)).setScale(2, RoundingMode.HALF_UP);
-		
 	}
-	
 	
 	private void validateRequestDiscount(Integer discount) throws IllegalArgumentException {
 		if (discount == null || discount < 0 || discount > 100)

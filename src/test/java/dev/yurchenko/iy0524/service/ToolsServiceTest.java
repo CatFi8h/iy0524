@@ -6,7 +6,7 @@ import dev.yurchenko.iy0524.entites.BrandEntity;
 import dev.yurchenko.iy0524.entites.ToolEntity;
 import dev.yurchenko.iy0524.entites.ToolTypeEntity;
 import dev.yurchenko.iy0524.repository.ToolRepository;
-import dev.yurchenko.iy0524.service.dto.DateCheckout;
+import dev.yurchenko.iy0524.dto.DateCheckoutDto;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +19,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,48 +44,48 @@ class ToolsServiceTest {
 
 	
 	@Test
-	public void testCheckoutValidateRequest_DaysZero_Invalid() {
-		when(toolRepository.checkoutWith(any())).thenThrow(IllegalArgumentException.class);
-		ToolRequest toolRequest = new ToolRequest("CODE", 0, 14, "TODAY");
+	public void testCreateRentalAgreementResponseValidateRequest_DaysZero_Invalid() {
+		when(toolRepository.getToolWithDetailsByCode(any())).thenThrow(IllegalArgumentException.class);
+		ToolRequest toolRequest = new ToolRequest("CODE", 0, 14, Instant.now());
 		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.checkout(toolRequest));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
 		
 	}
 	
 	@Test
-	public void testCheckoutValidateRequest_DaysNull_Invalid() {
-		when(toolRepository.checkoutWith(any())).thenThrow(IllegalArgumentException.class);
-		ToolRequest toolRequest = new ToolRequest("CODE", null, 14, "TODAY");
+	public void testCreateRentalAgreementResponseValidateRequest_DaysNull_Invalid() {
+		when(toolRepository.getToolWithDetailsByCode(any())).thenThrow(IllegalArgumentException.class);
+		ToolRequest toolRequest = new ToolRequest("CODE", null, 14, Instant.now());
 		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.checkout(toolRequest));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
 	}
 	
 	@Test
-	public void testCheckoutValidateRequest_DiscountBelowZero_Invalid() {
-		when(toolRepository.checkoutWith(any())).thenThrow(IllegalArgumentException.class);
-		ToolRequest toolRequest = new ToolRequest("CODE", 11, -1, "TODAY");
+	public void testCreateRentalAgreementResponseValidateRequest_DiscountBelowZero_Invalid() {
+		when(toolRepository.getToolWithDetailsByCode(any())).thenThrow(IllegalArgumentException.class);
+		ToolRequest toolRequest = new ToolRequest("CODE", 11, -1, Instant.now());
 		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.checkout(toolRequest));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
 	}
 	
 	@Test
-	public void testCheckoutValidateRequest_DiscountMoreThan100_Invalid() {
-		when(toolRepository.checkoutWith(any())).thenThrow(IllegalArgumentException.class);
-		ToolRequest toolRequest = new ToolRequest("CODE", 11, 101, "TODAY");
+	public void testCreateRentalAgreementResponseValidateRequest_DiscountMoreThan100_Invalid() {
+		when(toolRepository.getToolWithDetailsByCode(any())).thenThrow(IllegalArgumentException.class);
+		ToolRequest toolRequest = new ToolRequest("CODE", 11, 101, Instant.now());
 		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.checkout(toolRequest));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
 	}
 	
 	@Test
-	public void testCheckoutRequest_NoToolsFoundByCode_Invalid() {
-		when(toolRepository.checkoutWith(any())).thenReturn(null);
-		ToolRequest toolRequest = new ToolRequest("CODE", 11, 101, "TODAY");
+	public void testCreateRentalAgreementResponseRequest_NoToolsFoundByCode_Invalid() {
+		when(toolRepository.getToolWithDetailsByCode(any())).thenReturn(null);
+		ToolRequest toolRequest = new ToolRequest("CODE", 11, 101, Instant.now());
 		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.checkout(toolRequest));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
 	}
 	
 	@Test
-	public void testCheckoutRequest_CheckDueDate_Valid() throws ParseException {
+	public void testCreateRentalAgreementResponseRequest_CheckDueDate_Valid() throws ParseException {
 		BrandEntity brand = new BrandEntity();
 		brand.setId(1L);
 		brand.setName("My Brand");
@@ -98,22 +101,23 @@ class ToolsServiceTest {
 		tool.setCode("CODE");
 		tool.setBrand(brand);
 		tool.setToolType(toolType);
-		DateCheckout dateCheckout = new DateCheckout(11,
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		DateCheckoutDto dateCheckoutDto = new DateCheckoutDto(11,
 				10,
 				1,
-				DateFormat.getDateInstance().parse("Sun Sep 01 00:00:00 PDT 2021"),
-				DateFormat.getDateInstance().parse("Sun Sep 12 00:00:00 PDT 2021"));
+				dateFormat.parse("2021-09-01"),
+				dateFormat.parse("2021-09-12"));
 		
-		when(toolRepository.checkoutWith(anyString())).thenReturn(tool);
-		when(dateCheckService.getCheckoutDateFromDate(anyString(), anyInt(), anyBoolean(), anyBoolean(), anyBoolean())).thenReturn(dateCheckout);
-		ToolRequest toolRequest = new ToolRequest("CODE", 11, 20, "2021-09-01 00:00:00");
+		when(toolRepository.getToolWithDetailsByCode(anyString())).thenReturn(Optional.of(tool));
+		when(dateCheckService.getCheckoutDateFromDate(any(), anyInt(), anyBoolean(), anyBoolean(), anyBoolean())).thenReturn(dateCheckoutDto);
+		ToolRequest toolRequest = new ToolRequest("CODE", 11, 20, dateFormat.parse("2021-09-01").toInstant());
 		
-		RentalAgreementResponse checkout = toolsService.checkout(toolRequest);
+		RentalAgreementResponse checkout = toolsService.createRentalAgreementResponse(toolRequest);
 		
 		assertNotNull(checkout);
 		assertEquals("Sun Sep 12 00:00:00 PDT 2021", checkout.dueDate().toString());
 		assertEquals("Wed Sep 01 00:00:00 PDT 2021", checkout.date().toString());
-		assertEquals("CODE", checkout.code());
+		assertEquals(tool.getCode(), checkout.code());
 		assertEquals("My Brand", checkout.brand());
 		assertEquals(BigDecimal.ONE, checkout.dailyCharge());
 		assertEquals(BigDecimal.valueOf(10).setScale(2,RoundingMode.HALF_UP), checkout.preDiscountCharge());
