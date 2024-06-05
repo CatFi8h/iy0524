@@ -1,20 +1,21 @@
 package dev.yurchenko.iy0524.service.impl;
 
-import dev.yurchenko.iy0524.controller.request.ToolRequest;
-import dev.yurchenko.iy0524.controller.response.RentalAgreementResponse;
-import dev.yurchenko.iy0524.dto.DateCheckoutDto;
-import dev.yurchenko.iy0524.dto.ToolDto;
+import dev.yurchenko.iy0524.controller.request.ToolCheckoutRequestDto;
+import dev.yurchenko.iy0524.controller.response.RentalAgreementResponseDto;
+import dev.yurchenko.iy0524.exception.NoToolEntityFoundException;
+import dev.yurchenko.iy0524.service.dto.BillingDetailsDto;
 import dev.yurchenko.iy0524.entites.ToolEntity;
 import dev.yurchenko.iy0524.entites.ToolTypeEntity;
 import dev.yurchenko.iy0524.repository.ToolRepository;
-import dev.yurchenko.iy0524.service.DateCheckService;
+import dev.yurchenko.iy0524.service.BillingDetailsService;
 import dev.yurchenko.iy0524.service.ToolEntityCheckoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -22,63 +23,48 @@ import java.util.Optional;
 public class ToolsEntityCheckoutServiceImpl implements ToolEntityCheckoutService {
 	
 	private final ToolRepository toolRepository;
-	private final DateCheckService dateCheckService;
+	private final BillingDetailsService billingDetailsService;
 	
-	@Deprecated
-	private List<ToolEntity> getAllToolsFromRepository() {
-		return toolRepository.findAll();
-	}
-	
-	@Deprecated
-	public List<ToolDto> getAllToolsDto(List<ToolEntity> toolEntityList) {
-		return toolEntityList.stream()
-				       .map(e -> new ToolDto(e.getId(), e.getCode(), e.getBrand().getName(), e.getToolType().getName(), e.getToolType().getDailyCharge()))
-				       .toList();
-	}
 	
 	@Override
-	@Deprecated
-	public List<ToolDto> getAllTools() {
-		return getAllToolsDto(getAllToolsFromRepository());
-	}
-	
-	@Override
-	public RentalAgreementResponse createRentalAgreementResponse(ToolRequest request) {
-		Integer discountPercents = request.discount();
-		Integer rentDays = request.days();
-		
-		validateRequestDay(rentDays);
-		validateRequestDiscount(discountPercents);
+	public RentalAgreementResponseDto createRentalAgreementResponse(ToolCheckoutRequestDto request) {
+		int discountPercents = request.discount();
+		int rentDays = request.days();
 		
 		Optional<ToolEntity> toolEntity = toolRepository.getToolWithDetailsByCode(request.code());
 		
 		if (toolEntity.isEmpty()) {
-			throw new IllegalArgumentException(String.format("Tool with Code :%s not found", request.code()));
+			throw new NoToolEntityFoundException(String.format("Tool with Code :%s not found", request.code()));
 		}
 		ToolTypeEntity toolType = toolEntity.get().getToolType();
-		DateCheckoutDto checkoutDateFromDate =
-				dateCheckService.getBillingDetailsFromToolTypeAndCheckoutDate(request.checkoutDate(),
+		BillingDetailsDto checkoutDateFromDate =
+				billingDetailsService.getBillingDetailsFromToolTypeAndCheckoutDate(request.checkoutDate(),
 						rentDays,
-						toolType.getWeekdayCharge(),
-						toolType.getWeekendCharge(),
-						toolType.getHolidayCharge());
+						toolType);
 		
 		BigDecimal preDiscountCharge = getPriceWithoutDiscount(toolType.getDailyCharge(), checkoutDateFromDate.chargeDays());
 		BigDecimal discountAmount = getDiscountAmount(discountPercents, preDiscountCharge);
 		BigDecimal finalCharge = preDiscountCharge.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP);
+		SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yy");
 		
-		return new RentalAgreementResponse(toolEntity.get().getCode(),
+		return new RentalAgreementResponseDto(toolEntity.get().getCode(),
 				toolEntity.get().getBrand().getName(),
 				toolType.getName(),
 				checkoutDateFromDate.rentalDays(),
-				checkoutDateFromDate.checkoutDate(),
-				checkoutDateFromDate.dueDate(),
-				toolType.getDailyCharge(),
+				dateFormat.format(checkoutDateFromDate.checkoutDate()),
+				dateFormat.format(checkoutDateFromDate.dueDate()),
+				getStringCurrency(toolType.getDailyCharge()),
 				checkoutDateFromDate.chargeDays(),
-				preDiscountCharge,
-				discountPercents,
-				discountAmount,
-				finalCharge);
+				getStringCurrency(preDiscountCharge),
+				discountPercents + "%",
+				getStringCurrency(discountAmount),
+				getStringCurrency(finalCharge));
+	}
+	
+	private String getStringCurrency(BigDecimal amount) {
+		DecimalFormat df = new DecimalFormat("$#,##0.00");
+		return df.format(amount);
+//		return NumberFormat.getCurrencyInstance().format(amount);
 	}
 	
 	private static BigDecimal getDiscountAmount(Integer discountPercents, BigDecimal preDiscountCharge) {
@@ -88,14 +74,5 @@ public class ToolsEntityCheckoutServiceImpl implements ToolEntityCheckoutService
 	
 	private BigDecimal getPriceWithoutDiscount(BigDecimal price, long days) {
 		return price.multiply(BigDecimal.valueOf(days)).setScale(2, RoundingMode.HALF_UP);
-	}
-	
-	private void validateRequestDiscount(Integer discount) throws IllegalArgumentException {
-		if (discount == null || discount < 0 || discount > 100)
-			throw new IllegalArgumentException("Wrong Input. Discount can not be out of range 0-100.");
-	}
-	
-	private void validateRequestDay(Integer days) throws IllegalArgumentException {
-		if (days == null || days < 1) throw new IllegalArgumentException("Wrong Input. Days can not be less then ONE.");
 	}
 }

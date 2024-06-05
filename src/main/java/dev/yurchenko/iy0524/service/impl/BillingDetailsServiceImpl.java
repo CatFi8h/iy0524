@@ -1,91 +1,82 @@
 package dev.yurchenko.iy0524.service.impl;
 
-import dev.yurchenko.iy0524.dto.DateCheckoutDto;
-import dev.yurchenko.iy0524.service.DateCheckService;
+import dev.yurchenko.iy0524.service.dto.BillingDetailsDto;
+import dev.yurchenko.iy0524.entites.ToolTypeEntity;
+import dev.yurchenko.iy0524.service.BillingDetailsService;
 import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
 @Component
-public class DateCheckServiceImpl implements DateCheckService {
-
+public class BillingDetailsServiceImpl implements BillingDetailsService {
+	
 	@Override
-	public DateCheckoutDto getBillingDetailsFromToolTypeAndCheckoutDate(Instant date,
-	                                                                    int periodDaysTotal,
-	                                                                    Boolean weekdayCharge,
-	                                                                    Boolean weekendCharge,
-	                                                                    Boolean holidayCharge) {
+	public BillingDetailsDto getBillingDetailsFromToolTypeAndCheckoutDate(Instant checkoutDate, int periodDaysTotal, ToolTypeEntity toolType) {
 		
-		Date checkoutDate = Date.from(date);
-		
-		LocalDate start = checkoutDate.toInstant()
-				                  .atZone(ZoneId.systemDefault())
-				                  .toLocalDate();
+		LocalDate start = LocalDateTime.ofInstant(checkoutDate, ZoneOffset.UTC).toLocalDate();
 		LocalDate end = start.plusDays(periodDaysTotal);
 		
 		long chargeDays = 0;
-		if (weekdayCharge) {
+		if (toolType.getWeekdayCharge()) {
 			long periodWithoutWeekends = daysInRangeWithoutWeekends(start, end);
 			chargeDays += periodWithoutWeekends;
 		}
-		if (weekendCharge) {
+		if (toolType.getWeekendCharge()) {
 			long numberOfWeekends = periodDaysTotal - daysInRangeWithoutWeekends(start, end);
 			chargeDays += numberOfWeekends;
 		}
-		int holidaysCount = 0;
-		if (!holidayCharge) {
-			if (weekdayCharge) {
+		if (!toolType.getHolidayCharge()) {
+			if (toolType.getWeekdayCharge()) {
 				//independenceDay count in range
 				int independenceDay = getNumberOfHolidayMoveOnWorkdayIfOnWeekendInRange(start, end);
 				//labor day count in range
 				int laborDay = getNumberHolidayFirstDayOfWeekInMonthInRange(start, end);
-				holidaysCount = independenceDay + laborDay;
+				int holidaysCount = independenceDay + laborDay;
 				chargeDays -= holidaysCount;
 			}
 		}
-//		long periodWithoutWeekends = daysInRangeWithoutWeekends(start, end);
-//		long numberOfWeekends = periodDaysTotal - daysInRangeWithoutWeekends(start, end);
-////		long numberOfWeekends = getWeekendsInRange(start, end);
-////		long numberOfWeekends = periodDaysTotal - periodWithoutWeekends;
-//		//independenceDay count in range
-//		int independenceDay = getNumberOfHolidayMoveOnWorkdayIfOnWeekendInRange(start, end);
-//		//labor day count in range
-//		int laborDay = getNumberHolidayFirstDayOfWeekInMonthInRange(start, end);
-//		long freeDays = ((holidayCharge) ? 0 : (!weekdayCharge ? 0 : (laborDay + independenceDay)))
-//				                + (weekdayCharge ? 0 : periodWithoutWeekends)
-//				                + (weekendCharge ? 0 : numberOfWeekends);
 		
-		return new DateCheckoutDto(periodDaysTotal, chargeDays,
-				periodDaysTotal - chargeDays, checkoutDate, Date.from(date.plus(periodDaysTotal, ChronoUnit.DAYS)));
+		return new BillingDetailsDto(periodDaysTotal, chargeDays,
+				periodDaysTotal - chargeDays, Date.from(checkoutDate), Date.from(checkoutDate.plus(periodDaysTotal, ChronoUnit.DAYS)));
 	}
 	
 	private long daysInRangeWithoutWeekends(LocalDate start, LocalDate end) {
 		
 		boolean startOnWeekend = false;
 		boolean endOnWeekend = false;
+		//if start day of week is on weekend we move pointer to next Monday
 		if (start.getDayOfWeek().getValue() > 5) {
 			start = start.with(TemporalAdjusters.next(DayOfWeek.MONDAY));
 			startOnWeekend = true;
 		}
+		//if end day of week is on weekend we move pointer to the previous Friday
 		if (end.getDayOfWeek().getValue() > 5) {
 			end = end.with(TemporalAdjusters.previous(DayOfWeek.FRIDAY));
 			endOnWeekend = true;
 		}
 		long weeks = ChronoUnit.WEEKS.between(start, end);
+		//we need to add one day cause when we move pointer on the weekend we lose one day.
 		int addValue = startOnWeekend || endOnWeekend ? 1 : 0;
-		
-		return (weeks * 5) + addValue + (end.getDayOfWeek().getValue() - start.getDayOfWeek().getValue());
+		// case when we don't have pointer on weekends, range is smaller than week and dates are on different
+		// weeks and start day of week index is bigger than end day of week index
+		if (start.getDayOfWeek().getValue() > end.getDayOfWeek().getValue()
+				    && end.getDayOfYear() - start.getDayOfYear() < 7
+				    && !(startOnWeekend || endOnWeekend)) {
+			return end.getDayOfWeek().getValue() + (5 - start.getDayOfWeek().getValue());
+		}
+		return (weeks * 5) + addValue + Math.abs(end.getDayOfWeek().getValue() - start.getDayOfWeek().getValue());
 	}
-	
 //			Independence Day, July 4th - If falls on weekend, it is observed on the closest weekday (if Sat,
 //			then Friday before, if Sunday, then Monday after)
+	
 	private int getNumberOfHolidayMoveOnWorkdayIfOnWeekendInRange(LocalDate start, LocalDate end) {
 		int count = 0;
 		if (end.getYear() - start.getYear() >= 1) {
@@ -125,8 +116,8 @@ public class DateCheckServiceImpl implements DateCheckService {
 		}
 		return count;
 	}
-	
 //		Labor Day - First Monday in September
+	
 	private int getNumberHolidayFirstDayOfWeekInMonthInRange(LocalDate start, LocalDate end) {
 		int count = 0;
 		if (end.getYear() - start.getYear() >= 1) {
@@ -149,5 +140,4 @@ public class DateCheckServiceImpl implements DateCheckService {
 		}
 		return count;
 	}
-	
 }
