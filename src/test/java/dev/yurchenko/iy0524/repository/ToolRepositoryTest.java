@@ -34,6 +34,7 @@ class ToolRepositoryTest {
 		assertEquals(true, toolEntity.getToolType().getWeekdayCharge());
 		assertEquals(true, toolEntity.getToolType().getHolidayCharge());
 	}
+	
 	@Test
 	public void testToolRepository_findToolByCode_LADW() {
 		Optional<ToolEntity> toolEntityOpt = toolRepository.getToolWithDetailsByCode("LADW");
@@ -50,6 +51,7 @@ class ToolRepositoryTest {
 		assertEquals(true, toolEntity.getToolType().getWeekdayCharge());
 		assertEquals(false, toolEntity.getToolType().getHolidayCharge());
 	}
+	
 	@Test
 	public void testToolRepository_findToolByCode_JAKD() {
 		Optional<ToolEntity> toolEntityOpt = toolRepository.getToolWithDetailsByCode("JAKD");
@@ -66,6 +68,7 @@ class ToolRepositoryTest {
 		assertEquals(true, toolEntity.getToolType().getWeekdayCharge());
 		assertEquals(false, toolEntity.getToolType().getHolidayCharge());
 	}
+	
 	@Test
 	public void testToolRepository_findToolByCode_JAKR() {
 		Optional<ToolEntity> toolEntityOpt = toolRepository.getToolWithDetailsByCode("JAKR");

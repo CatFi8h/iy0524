@@ -39,7 +39,7 @@ class ToolsEntityCheckoutServiceTest {
 	private BillingDetailsService billingDetailsService;
 	@Autowired
 	private ToolEntityCheckoutService toolsEntityCheckoutService;
-
+	
 	
 	@Test
 	public void testCreateRentalAgreementResponseRequest_CheckDueDate_Valid() throws ParseException {
@@ -87,8 +87,6 @@ class ToolsEntityCheckoutServiceTest {
 		assertEquals("20%", agreementResponse.discountPercent());
 		
 	}
-	
-	
 	
 	
 }

@@ -1,7 +1,7 @@
 package dev.yurchenko.iy0524.service;
 
-import dev.yurchenko.iy0524.service.dto.BillingDetailsDto;
 import dev.yurchenko.iy0524.entites.ToolTypeEntity;
+import dev.yurchenko.iy0524.service.dto.BillingDetailsDto;
 import dev.yurchenko.iy0524.service.impl.BillingDetailsServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

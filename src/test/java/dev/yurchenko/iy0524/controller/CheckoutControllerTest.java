@@ -119,6 +119,7 @@ class CheckoutControllerTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("message").value(DISCOUNT_VALIDATION_ERROR_MESSAGE));
 	}
+	
 	@Test
 	public void test_createRentalAgreementResponse_discountMoreThanZero() throws Exception {
 		DateFormat dateFormat = new SimpleDateFormat(DATE_MAPPING);
@@ -129,6 +130,7 @@ class CheckoutControllerTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("message").value(DISCOUNT_VALIDATION_ERROR_MESSAGE));
 	}
+	
 	@Test
 	public void test_createRentalAgreementResponse_NoCodeInRequest() throws Exception {
 		DateFormat dateFormat = new SimpleDateFormat(DATE_MAPPING);
@@ -150,6 +152,7 @@ class CheckoutControllerTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("message").value(CODE_VALIDATION_ERROR_MESSAGE));
 	}
+	
 	@Test
 	public void test_createRentalAgreementResponse_CodeIsShorter() throws Exception {
 		DateFormat dateFormat = new SimpleDateFormat(DATE_MAPPING);
@@ -161,5 +164,5 @@ class CheckoutControllerTest {
 				.andExpect(jsonPath("message").value(CODE_VALIDATION_ERROR_MESSAGE));
 	}
 	
-
+	
 }
