@@ -2,13 +2,13 @@ package dev.yurchenko.iy0524.service.impl;
 
 import dev.yurchenko.iy0524.controller.request.ToolCheckoutRequestDto;
 import dev.yurchenko.iy0524.controller.response.RentalAgreementResponseDto;
-import dev.yurchenko.iy0524.exception.NoToolEntityFoundException;
-import dev.yurchenko.iy0524.service.dto.BillingDetailsDto;
 import dev.yurchenko.iy0524.entites.ToolEntity;
 import dev.yurchenko.iy0524.entites.ToolTypeEntity;
+import dev.yurchenko.iy0524.exception.NoToolEntityFoundException;
 import dev.yurchenko.iy0524.repository.ToolRepository;
 import dev.yurchenko.iy0524.service.BillingDetailsService;
 import dev.yurchenko.iy0524.service.ToolEntityCheckoutService;
+import dev.yurchenko.iy0524.service.dto.BillingDetailsDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -64,11 +64,10 @@ public class ToolsEntityCheckoutServiceImpl implements ToolEntityCheckoutService
 	private String getStringCurrency(BigDecimal amount) {
 		DecimalFormat df = new DecimalFormat("$#,##0.00");
 		return df.format(amount);
-//		return NumberFormat.getCurrencyInstance().format(amount);
 	}
 	
 	private static BigDecimal getDiscountAmount(Integer discountPercents, BigDecimal preDiscountCharge) {
-		BigDecimal percentAsDecimal = new BigDecimal(discountPercents).divide(new BigDecimal(100),2,  RoundingMode.HALF_UP);
+		BigDecimal percentAsDecimal = new BigDecimal(discountPercents).divide(new BigDecimal(100), 2, RoundingMode.HALF_UP);
 		return percentAsDecimal.multiply(preDiscountCharge).setScale(2, RoundingMode.HALF_UP);
 	}
 	

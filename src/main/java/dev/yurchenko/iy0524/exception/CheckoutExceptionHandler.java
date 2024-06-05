@@ -11,7 +11,7 @@ import java.util.Map;
 @ControllerAdvice
 public class CheckoutExceptionHandler {
 	
-	@ExceptionHandler({RequestValidationException.class })
+	@ExceptionHandler({RequestValidationException.class})
 	protected ResponseEntity<Object> handleRequestValidationException(RuntimeException ex) {
 		Map<String, Object> body = new HashMap<>();
 		body.put("message", ex.getMessage());

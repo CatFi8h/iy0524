@@ -1,8 +1,8 @@
 package dev.yurchenko.iy0524.service.impl;
 
-import dev.yurchenko.iy0524.service.dto.BillingDetailsDto;
 import dev.yurchenko.iy0524.entites.ToolTypeEntity;
 import dev.yurchenko.iy0524.service.BillingDetailsService;
+import dev.yurchenko.iy0524.service.dto.BillingDetailsDto;
 import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
@@ -74,9 +74,11 @@ public class BillingDetailsServiceImpl implements BillingDetailsService {
 		}
 		return (weeks * 5) + addValue + Math.abs(end.getDayOfWeek().getValue() - start.getDayOfWeek().getValue());
 	}
-//			Independence Day, July 4th - If falls on weekend, it is observed on the closest weekday (if Sat,
-//			then Friday before, if Sunday, then Monday after)
 	
+	/*
+	Independence Day, July 4th - If falls on weekend, it is observed on the closest weekday (if Sat,
+				then Friday before, if Sunday, then Monday after)
+				*/
 	private int getNumberOfHolidayMoveOnWorkdayIfOnWeekendInRange(LocalDate start, LocalDate end) {
 		int count = 0;
 		if (end.getYear() - start.getYear() >= 1) {
@@ -116,8 +118,10 @@ public class BillingDetailsServiceImpl implements BillingDetailsService {
 		}
 		return count;
 	}
-//		Labor Day - First Monday in September
 	
+	/*
+	Labor Day - First Monday in September
+	* */
 	private int getNumberHolidayFirstDayOfWeekInMonthInRange(LocalDate start, LocalDate end) {
 		int count = 0;
 		if (end.getYear() - start.getYear() >= 1) {
