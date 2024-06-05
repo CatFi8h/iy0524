@@ -8,7 +8,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.yurchenko.iy0524.controller.request.ToolRequest;
 import dev.yurchenko.iy0524.controller.response.RentalAgreementResponse;
 import dev.yurchenko.iy0524.dto.ToolDto;
-import dev.yurchenko.iy0524.service.ToolsService;
+import dev.yurchenko.iy0524.exception.RequestValidationException;
+import dev.yurchenko.iy0524.service.impl.ToolsEntityCheckoutServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,6 +25,8 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -37,7 +40,7 @@ class CheckoutControllerTest {
 	private MockMvc mockMvc;
 	
 	@MockBean
-	private ToolsService toolsService;
+	private ToolsEntityCheckoutServiceImpl toolsEntityCheckoutService;
 	private static final ObjectMapper MAPPER = new ObjectMapper()
 			                                           .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 			                                           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -62,7 +65,7 @@ class CheckoutControllerTest {
 	
 	@Test
 	public void testGetToolsList() throws Exception {
-		when(toolsService.getAllTools())
+		when(toolsEntityCheckoutService.getAllTools())
 		.thenReturn(Stream.of(new ToolDto(1L, "CODE", "Brand", "Instrument Type", BigDecimal.TEN)).toList());
 		mockMvc.perform(get("/").accept(MediaType.APPLICATION_JSON))
 				                      .andExpect(status().isOk())
@@ -87,7 +90,7 @@ class CheckoutControllerTest {
 				14,
 				new BigDecimal(25),
 				new BigDecimal(124));
-		when(toolsService.createRentalAgreementResponse(any(ToolRequest.class)))
+		when(toolsEntityCheckoutService.createRentalAgreementResponse(any(ToolRequest.class)))
 				.thenReturn(rentalAgreementResponse);
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		ToolRequest request = new ToolRequest("CODE", 5, 15, dateFormat.parse("2007-12-03").toInstant());
@@ -108,6 +111,43 @@ class CheckoutControllerTest {
 				.andExpect(jsonPath("$.discountAmount").value(25))
 				.andExpect(jsonPath("$.finalCharge").value(124));
 	
+	}
+	
+	@Test
+	public void test_createRentalAgreementResponse_NoCodeInRequest() throws Exception {
+	
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		assertThrows(RequestValidationException.class,
+				() -> new ToolRequest(null, 5, -15, dateFormat.parse("2007-12-03").toInstant()),
+				"Field 'code' should not be Blank and less nor bigger length 4");
+		
+	}
+	@Test
+	public void test_createRentalAgreementResponse_DaysLessThanOne() throws Exception {
+	
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		assertThrows(RequestValidationException.class,
+				() -> new ToolRequest("CODE", 0, -15, dateFormat.parse("2007-12-03").toInstant()),
+				"Field 'days' should not be less than 1.");
+		
+	}
+	@Test
+	public void test_createRentalAgreementResponse_discountLessThanZero() throws Exception {
+	
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		assertThrows(RequestValidationException.class,
+				() -> new ToolRequest("CODE", 5, -1, dateFormat.parse("2007-12-03").toInstant()),
+				"Filed 'discount' should not be less than 0 and greater that 100");
+		
+	}
+	@Test
+	public void test_createRentalAgreementResponse_checkoutDateIsNull() throws Exception {
+	
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		assertThrows(RequestValidationException.class,
+				() -> new ToolRequest(null, 5, -15, null),
+				"Filed 'checkoutDate' should not be empty");
+		
 	}
 	
 

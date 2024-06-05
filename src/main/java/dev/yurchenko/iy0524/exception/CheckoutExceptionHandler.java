@@ -1,23 +1,23 @@
 package dev.yurchenko.iy0524.exception;
 
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
-import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 
 @ControllerAdvice
 public class CheckoutExceptionHandler {
 	
-	@ExceptionHandler(value = IllegalArgumentException.class)
-	protected ResponseEntity<Object> handleValidation(Exception ex, WebRequest request) {
-		return new ResponseEntity<>(ex.getMessage(), HttpStatusCode.valueOf(400));
+	@ExceptionHandler(RequestValidationException.class)
+	protected ResponseEntity<Object> handleValidationValidationException(RuntimeException ex, WebRequest request) {
+		Map<String, Object> body = new HashMap<>();
+		body.put("message", ex.getMessage());
+		
+		return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
 	}
 	
-	@ExceptionHandler(value = ParseException.class)
-	protected ResponseEntity<Object> handleDateParsing(Exception ex) {
-		return new ResponseEntity<>(ex.getMessage(), HttpStatusCode.valueOf(400));
-	}
 }

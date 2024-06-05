@@ -7,7 +7,8 @@ import dev.yurchenko.iy0524.entites.ToolEntity;
 import dev.yurchenko.iy0524.entites.ToolTypeEntity;
 import dev.yurchenko.iy0524.repository.ToolRepository;
 import dev.yurchenko.iy0524.dto.DateCheckoutDto;
-import org.junit.jupiter.api.Assertions;
+import dev.yurchenko.iy0524.service.impl.DateCheckServiceImpl;
+import dev.yurchenko.iy0524.service.impl.ToolsEntityCheckoutServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,6 @@ import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,57 +32,16 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ToolsService.class})
-class ToolsServiceTest {
+@ContextConfiguration(classes = {ToolsEntityCheckoutServiceImpl.class})
+class ToolsEntityCheckoutServiceTest {
 	
 	@MockBean
 	private ToolRepository toolRepository;
 	@MockBean
 	private DateCheckService dateCheckService;
 	@Autowired
-	private ToolsService toolsService;
+	private ToolEntityCheckoutService toolsEntityCheckoutService;
 
-	
-	@Test
-	public void testCreateRentalAgreementResponseValidateRequest_DaysZero_Invalid() {
-		when(toolRepository.getToolWithDetailsByCode(any())).thenThrow(IllegalArgumentException.class);
-		ToolRequest toolRequest = new ToolRequest("CODE", 0, 14, Instant.now());
-		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
-		
-	}
-	
-	@Test
-	public void testCreateRentalAgreementResponseValidateRequest_DaysNull_Invalid() {
-		when(toolRepository.getToolWithDetailsByCode(any())).thenThrow(IllegalArgumentException.class);
-		ToolRequest toolRequest = new ToolRequest("CODE", null, 14, Instant.now());
-		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
-	}
-	
-	@Test
-	public void testCreateRentalAgreementResponseValidateRequest_DiscountBelowZero_Invalid() {
-		when(toolRepository.getToolWithDetailsByCode(any())).thenThrow(IllegalArgumentException.class);
-		ToolRequest toolRequest = new ToolRequest("CODE", 11, -1, Instant.now());
-		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
-	}
-	
-	@Test
-	public void testCreateRentalAgreementResponseValidateRequest_DiscountMoreThan100_Invalid() {
-		when(toolRepository.getToolWithDetailsByCode(any())).thenThrow(IllegalArgumentException.class);
-		ToolRequest toolRequest = new ToolRequest("CODE", 11, 101, Instant.now());
-		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
-	}
-	
-	@Test
-	public void testCreateRentalAgreementResponseRequest_NoToolsFoundByCode_Invalid() {
-		when(toolRepository.getToolWithDetailsByCode(any())).thenReturn(null);
-		ToolRequest toolRequest = new ToolRequest("CODE", 11, 101, Instant.now());
-		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> toolsService.createRentalAgreementResponse(toolRequest));
-	}
 	
 	@Test
 	public void testCreateRentalAgreementResponseRequest_CheckDueDate_Valid() throws ParseException {
@@ -109,10 +68,10 @@ class ToolsServiceTest {
 				dateFormat.parse("2021-09-12"));
 		
 		when(toolRepository.getToolWithDetailsByCode(anyString())).thenReturn(Optional.of(tool));
-		when(dateCheckService.getCheckoutDateFromDate(any(), anyInt(), anyBoolean(), anyBoolean(), anyBoolean())).thenReturn(dateCheckoutDto);
+		when(dateCheckService.getBillingDetailsFromToolTypeAndCheckoutDate(any(), anyInt(), anyBoolean(), anyBoolean(), anyBoolean())).thenReturn(dateCheckoutDto);
 		ToolRequest toolRequest = new ToolRequest("CODE", 11, 20, dateFormat.parse("2021-09-01").toInstant());
 		
-		RentalAgreementResponse checkout = toolsService.createRentalAgreementResponse(toolRequest);
+		RentalAgreementResponse checkout = toolsEntityCheckoutService.createRentalAgreementResponse(toolRequest);
 		
 		assertNotNull(checkout);
 		assertEquals("Sun Sep 12 00:00:00 PDT 2021", checkout.dueDate().toString());

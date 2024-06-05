@@ -4,8 +4,7 @@ import dev.yurchenko.iy0524.controller.request.ToolRequest;
 import dev.yurchenko.iy0524.controller.response.RentalAgreementResponse;
 import dev.yurchenko.iy0524.controller.response.ToolListResponse;
 import dev.yurchenko.iy0524.dto.ToolDto;
-import dev.yurchenko.iy0524.service.ToolsService;
-import lombok.NonNull;
+import dev.yurchenko.iy0524.service.ToolEntityCheckoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,17 +18,17 @@ import java.util.List;
 @RestController
 public class CheckoutController {
 	
-	private final ToolsService toolsService;
+	private final ToolEntityCheckoutService toolEntityCheckoutService;
 	
 	@GetMapping("/")
 	public ToolListResponse getAllTools() {
 	
-		List<ToolDto> allToolsDto = toolsService.getAllTools();
+		List<ToolDto> allToolsDto = toolEntityCheckoutService.getAllTools();
 		return new ToolListResponse(allToolsDto);
 	}
 	
 	@PostMapping("/checkout")
-	public @ResponseBody RentalAgreementResponse checkoutTool(@NonNull @RequestBody ToolRequest request) {
-		return toolsService.createRentalAgreementResponse(request);
+	public @ResponseBody RentalAgreementResponse checkoutTool(@RequestBody ToolRequest request) {
+		return toolEntityCheckoutService.createRentalAgreementResponse(request);
 	}
 }

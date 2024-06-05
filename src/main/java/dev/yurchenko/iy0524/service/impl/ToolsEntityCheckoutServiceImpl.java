@@ -1,12 +1,14 @@
-package dev.yurchenko.iy0524.service;
+package dev.yurchenko.iy0524.service.impl;
 
 import dev.yurchenko.iy0524.controller.request.ToolRequest;
 import dev.yurchenko.iy0524.controller.response.RentalAgreementResponse;
+import dev.yurchenko.iy0524.dto.DateCheckoutDto;
 import dev.yurchenko.iy0524.dto.ToolDto;
 import dev.yurchenko.iy0524.entites.ToolEntity;
 import dev.yurchenko.iy0524.entites.ToolTypeEntity;
 import dev.yurchenko.iy0524.repository.ToolRepository;
-import dev.yurchenko.iy0524.dto.DateCheckoutDto;
+import dev.yurchenko.iy0524.service.DateCheckService;
+import dev.yurchenko.iy0524.service.ToolEntityCheckoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,25 +19,30 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
-public class ToolsService {
+public class ToolsEntityCheckoutServiceImpl implements ToolEntityCheckoutService {
 	
 	private final ToolRepository toolRepository;
 	private final DateCheckService dateCheckService;
 	
+	@Deprecated
 	private List<ToolEntity> getAllToolsFromRepository() {
 		return toolRepository.findAll();
 	}
 	
-	private List<ToolDto> getAllToolsDto(List<ToolEntity> toolEntityList) {
+	@Deprecated
+	public List<ToolDto> getAllToolsDto(List<ToolEntity> toolEntityList) {
 		return toolEntityList.stream()
 				       .map(e -> new ToolDto(e.getId(), e.getCode(), e.getBrand().getName(), e.getToolType().getName(), e.getToolType().getDailyCharge()))
 				       .toList();
 	}
 	
+	@Override
+	@Deprecated
 	public List<ToolDto> getAllTools() {
 		return getAllToolsDto(getAllToolsFromRepository());
 	}
 	
+	@Override
 	public RentalAgreementResponse createRentalAgreementResponse(ToolRequest request) {
 		Integer discountPercents = request.discount();
 		Integer rentDays = request.days();
@@ -50,7 +57,7 @@ public class ToolsService {
 		}
 		ToolTypeEntity toolType = toolEntity.get().getToolType();
 		DateCheckoutDto checkoutDateFromDate =
-				dateCheckService.getCheckoutDateFromDate(request.checkoutDate(),
+				dateCheckService.getBillingDetailsFromToolTypeAndCheckoutDate(request.checkoutDate(),
 						rentDays,
 						toolType.getWeekdayCharge(),
 						toolType.getWeekendCharge(),
